@@ -1,3 +1,11 @@
+var assets = []string{"8d51e5d75ec9adf8080213e0f310e78b0063f50d",
+	"b6cb731f90cefebbd4f9cedd0cf56bd1e21967f4",
+	"9a9db8a30a80951ec792effb9731af79781177c2",
+	"7ba002bc1dbc918d555f1d466acda1d540332e28",
+	"378b147c06a7737a6a712d7bdcfa0d5bc3ca4d53",
+	"5e529a73fd7dad3b1fed587f8874c0855cd634c5"}
+
+func TestRedis(t *testing.T) {
 	sb := sc.NewScriptBuilder()
 	scriptHash := helper.HexToBytes("dad9fbc914203b99c1dfbaad0d98738d4e19924d") //
 	address := "AGrgyoJR4FKeWCNGRvduSakaDzhZ9qikr9"
@@ -59,3 +67,4 @@
 	} else {
 		log.Printf("stack empty")
 	}
+}
