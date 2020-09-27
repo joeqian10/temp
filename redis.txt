@@ -1,0 +1,61 @@
+	sb := sc.NewScriptBuilder()
+	scriptHash := helper.HexToBytes("dad9fbc914203b99c1dfbaad0d98738d4e19924d") //
+	address := "AGrgyoJR4FKeWCNGRvduSakaDzhZ9qikr9"
+	lyh, _ := helper.AddressToScriptHash(address)
+	log.Printf("lyh: %s", helper.BytesToHex(lyh.Bytes()))
+
+	for _, asset := range assets {
+		cp1 := sc.ContractParameter{
+			Type:  sc.ByteArray,
+			Value: lyh.Bytes(),
+		}
+
+		cp2 := sc.ContractParameter{
+			Type:  sc.ByteArray,
+			Value: helper.HexToBytes(asset), //
+		}
+
+		args := []sc.ContractParameter{cp1, cp2}
+		sb.MakeInvocationScript(scriptHash, "getStakingAmount", args)
+	}
+
+	for _, asset := range assets {
+		cp2 := sc.ContractParameter{
+			Type:  sc.ByteArray,
+			Value: helper.HexToBytes(asset), //
+		}
+		args :=  []sc.ContractParameter{cp2}
+		sb.MakeInvocationScript(scriptHash, "getCurrentTotalAmount", args)
+	}
+
+	script := sb.ToArray()
+
+	log.Printf("script: %s", helper.BytesToHex(script))
+
+	//client := NewClient("http://seed10.ngd.network:11332")
+	client := NewClient("https://wallet.ngd.network:10331")
+	checkWitnessHashes := "0000000000000000000000000000000000000000"
+	response := client.InvokeScript(helper.BytesToHex(script), checkWitnessHashes)
+	if response.HasError() || response.Result.State == "FAULT" {
+		log.Printf("invoke script error: %s", response.Error.Message)
+	}
+
+	if len(response.Result.Stack) > 0 {
+		var amount *big.Int
+		var success bool
+		for i, stack := range response.Result.Stack {
+			if stack.Type == "ByteArray" {
+				amount = helper.BigIntFromNeoBytes(helper.HexToBytes(stack.Value))
+			} else {
+				amount, success = new(big.Int).SetString(stack.Value, 10)
+				assert.Equal(t, true, success)
+			}
+			if i < 5 {
+				log.Printf("staking amount: %s", amount.String())
+			} else {
+				log.Printf("total amount: %s", amount.String())
+			}
+		}
+	} else {
+		log.Printf("stack empty")
+	}
